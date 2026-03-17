@@ -11,11 +11,6 @@ const loginSchema = z.object({
   password: z.string().min(6),
 });
 
-/**
- * Verifies a password against a SHA-256 hex hash (timing-safe).
- * Hash format: plain 64-char hex OR "sha256:<hex>".
- * To use bcrypt: npm install bcryptjs @types/bcryptjs and extend this function.
- */
 async function verifyPassword(password: string, hash: string): Promise<boolean> {
   try {
     const inputHash = createHash("sha256").update(password).digest("hex");
@@ -61,16 +56,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         // Check DB users
         const user = await db.user.findUnique({ where: { email } });
         if (!user?.passwordHash) return null;
-
-        const valid = await verifyPassword(password, user.passwordHash);
-        if (!valid) return null;
+        if (!(await verifyPassword(password, user.passwordHash))) return null;
 
         return { id: user.id, email: user.email, name: user.name, role: user.role };
       },
     }),
   ],
   callbacks: {
-    ...authConfig.callbacks,
     async jwt({ token, user }) {
       if (user) token.role = (user as { role?: string }).role ?? "admin";
       return token;

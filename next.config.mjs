@@ -13,6 +13,11 @@ const nextConfig = {
       },
     ],
   },
+  // Suppress jose/next-auth Edge Runtime warnings (they are informational only)
+  webpack(config) {
+    config.resolve.fallback = { ...config.resolve.fallback, net: false, tls: false };
+    return config;
+  },
 };
 
 export default nextConfig;
