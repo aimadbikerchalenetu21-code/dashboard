@@ -4,6 +4,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import { db } from "@/lib/db";
 import { z } from "zod";
 import { createHash, timingSafeEqual } from "crypto";
+import { authConfig } from "@/auth.config";
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -11,13 +12,12 @@ const loginSchema = z.object({
 });
 
 /**
- * Verifies a password against a SHA-256 hex hash.
- * To use bcrypt hashes: npm install bcryptjs @types/bcryptjs and update this function.
- * Hash format stored in DB/env: either plain hex (64 chars) or "sha256:<hex>"
+ * Verifies a password against a SHA-256 hex hash (timing-safe).
+ * Hash format: plain 64-char hex OR "sha256:<hex>".
+ * To use bcrypt: npm install bcryptjs @types/bcryptjs and extend this function.
  */
 async function verifyPassword(password: string, hash: string): Promise<boolean> {
   try {
-    // SHA-256 hex comparison (timing-safe)
     const inputHash = createHash("sha256").update(password).digest("hex");
     const normalizedHash = hash.startsWith("sha256:") ? hash.slice(7) : hash;
     const expected = Buffer.from(normalizedHash, "hex");
@@ -30,11 +30,9 @@ async function verifyPassword(password: string, hash: string): Promise<boolean> 
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  ...authConfig,
   adapter: PrismaAdapter(db),
   session: { strategy: "jwt" },
-  pages: {
-    signIn: "/admin/login",
-  },
   providers: [
     Credentials({
       name: "credentials",
@@ -48,7 +46,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const { email, password } = parsed.data;
 
-        // Check env-based admin first (useful before DB is seeded)
+        // Check env-based admin first (works before DB is seeded)
         const envAdminEmail = process.env.ADMIN_EMAIL;
         const envAdminHash = process.env.ADMIN_PASSWORD_HASH;
         if (
@@ -57,12 +55,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           email === envAdminEmail &&
           (await verifyPassword(password, envAdminHash))
         ) {
-          return {
-            id: "env-admin",
-            email,
-            name: "Admin",
-            role: "admin",
-          };
+          return { id: "env-admin", email, name: "Admin", role: "admin" };
         }
 
         // Check DB users
@@ -72,26 +65,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const valid = await verifyPassword(password, user.passwordHash);
         if (!valid) return null;
 
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-        };
+        return { id: user.id, email: user.email, name: user.name, role: user.role };
       },
     }),
   ],
   callbacks: {
+    ...authConfig.callbacks,
     async jwt({ token, user }) {
-      if (user) {
-        token.role = (user as { role?: string }).role ?? "admin";
-      }
+      if (user) token.role = (user as { role?: string }).role ?? "admin";
       return token;
     },
     async session({ session, token }) {
-      if (session.user) {
-        (session.user as { role?: string }).role = token.role as string;
-      }
+      if (session.user) (session.user as { role?: string }).role = token.role as string;
       return session;
     },
   },

@@ -1,20 +1,8 @@
-import { auth } from "@/auth";
-import { NextResponse } from "next/server";
+import NextAuth from "next-auth";
+import { authConfig } from "@/auth.config";
 
-export default auth((req) => {
-  const { pathname } = req.nextUrl;
-
-  // Protect all /admin routes except /admin/login
-  if (pathname.startsWith("/admin") && pathname !== "/admin/login") {
-    if (!req.auth) {
-      const loginUrl = new URL("/admin/login", req.url);
-      loginUrl.searchParams.set("callbackUrl", pathname);
-      return NextResponse.redirect(loginUrl);
-    }
-  }
-
-  return NextResponse.next();
-});
+// Use the edge-safe config (no Prisma, no Node crypto) for middleware
+export const { auth: middleware } = NextAuth(authConfig);
 
 export const config = {
   matcher: ["/admin/:path*"],
