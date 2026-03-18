@@ -4,6 +4,8 @@ import { stripe } from "@/lib/stripe";
 import { db } from "@/lib/db";
 import { OrderStatus } from "@prisma/client";
 
+export const dynamic = "force-dynamic";
+
 const checkoutSchema = z.object({
   storeId: z.string().min(1),
   planName: z.string().min(1),

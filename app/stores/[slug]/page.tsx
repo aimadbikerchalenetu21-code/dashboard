@@ -1,4 +1,6 @@
 import { db } from "@/lib/db";
+
+export const dynamic = "force-dynamic";
 import { notFound } from "next/navigation";
 import { PlanCard } from "@/components/store/plan-card";
 import { StoreHeader } from "@/components/store/store-header";

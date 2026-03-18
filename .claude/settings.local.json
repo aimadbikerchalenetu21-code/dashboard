@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm create:*)",
+      "Bash(npm install:*)",
+      "Bash(pnpm --version)",
+      "Bash(export PATH=\"$PATH:/c/Users/A/AppData/Roaming/npm\")",
+      "Bash(npx pnpm:*)",
+      "Read(//c/Users/A/AppData/Roaming/npm//**)",
+      "Bash(/c/Users/A/AppData/Roaming/npm/pnpm.cmd --version)",
+      "Bash(npx create-next-app@14 . --typescript --tailwind --eslint --app --src-dir=no --import-alias=\"@/*\" --yes)",
+      "Bash(npx create-next-app@14 . --typescript --tailwind --eslint --app --src-dir=no --import-alias=\"@/*\" --yes --force)",
+      "Bash(npx --yes create-next-app@14 temp-scaffold --typescript --tailwind --eslint --app --src-dir=no --import-alias=\"@/*\" --yes)",
+      "Bash(npx prisma:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx next:*)",
+      "Read(//c/Users/A/.claude/projects/c--Users-A-Documents-dashboard/**)",
+      "Bash(node -e \"console.log\\(require\\(''crypto''\\).randomBytes\\(32\\).toString\\(''hex''\\)\\)\")",
+      "Bash(node -e \"console.log\\(require\\(''crypto''\\).createHash\\(''sha256''\\).update\\(''admin123''\\).digest\\(''hex''\\)\\)\")"
+    ]
+  }
+}

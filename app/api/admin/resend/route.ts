@@ -3,6 +3,8 @@ import { auth } from "@/auth";
 import { z } from "zod";
 import { deliverCredentials } from "@/lib/delivery";
 
+export const dynamic = "force-dynamic";
+
 const resendSchema = z.object({
   credentialId: z.string().min(1),
   channel: z.enum(["email", "whatsapp", "both"]),

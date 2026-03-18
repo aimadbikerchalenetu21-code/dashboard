@@ -1,4 +1,6 @@
 import { db } from "@/lib/db";
+
+export const dynamic = "force-dynamic";
 import { notFound } from "next/navigation";
 import { formatCurrency, formatDate, planDurationLabel } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";

@@ -1,4 +1,6 @@
 import { db } from "@/lib/db";
+
+export const dynamic = "force-dynamic";
 import { OrderStatus } from "@prisma/client";
 import { formatCurrency, formatDate, planDurationLabel } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";

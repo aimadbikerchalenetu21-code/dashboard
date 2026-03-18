@@ -1,4 +1,6 @@
 import { stripe } from "@/lib/stripe";
+
+export const dynamic = "force-dynamic";
 import { db } from "@/lib/db";
 import Link from "next/link";
 import { CheckCircle2, Mail, MessageCircle } from "lucide-react";

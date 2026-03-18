@@ -9,6 +9,7 @@ import { deliverCredentials } from "@/lib/delivery";
 import type { StripeMetadata } from "@/lib/stripe";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 function parsePlanDuration(raw: string): PlanDuration {
   const map: Record<string, PlanDuration> = {

@@ -3,6 +3,8 @@ import { auth } from "@/auth";
 import { z } from "zod";
 import { db } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 const createStoreSchema = z.object({
   name: z.string().min(1).max(100),
   slug: z

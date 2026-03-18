@@ -1,4 +1,6 @@
 import { db } from "@/lib/db";
+
+export const dynamic = "force-dynamic";
 import { formatDate } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
