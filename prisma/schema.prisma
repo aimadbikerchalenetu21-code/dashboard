@@ -24,19 +24,17 @@ model Store {
 }
 
 model Client {
-  id               String   @id @default(cuid())
-  email            String   @unique
-  phone            String?
-  name             String?
-  stripeCustomerId String?  @unique
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id        String   @id @default(cuid())
+  email     String   @unique
+  phone     String?
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   orders      Order[]
   credentials Credential[]
 
   @@index([email])
-  @@index([stripeCustomerId])
 }
 
 enum PlanDuration {
@@ -54,19 +52,18 @@ enum OrderStatus {
 }
 
 model Order {
-  id                    String      @id @default(cuid())
-  storeId               String
-  clientId              String
-  planName              String
-  planDuration          PlanDuration
-  amountCents           Int
-  currency              String      @default("usd")
-  stripeSessionId       String?     @unique
-  stripePaymentIntentId String?
-  status                OrderStatus @default(PENDING)
-  paidAt                DateTime?
-  createdAt             DateTime    @default(now())
-  updatedAt             DateTime    @updatedAt
+  id           String       @id @default(cuid())
+  storeId      String
+  clientId     String
+  planName     String
+  planDuration PlanDuration
+  amountCents  Int
+  currency     String       @default("usd")
+  notes        String?      // optional admin notes
+  status       OrderStatus  @default(PENDING)
+  paidAt       DateTime?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 
   store       Store        @relation(fields: [storeId], references: [id])
   client      Client       @relation(fields: [clientId], references: [id])
@@ -74,7 +71,6 @@ model Order {
 
   @@index([storeId])
   @@index([clientId])
-  @@index([stripeSessionId])
   @@index([status])
   @@index([createdAt])
 }

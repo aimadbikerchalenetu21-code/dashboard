@@ -21,11 +21,6 @@ interface Store {
   slug: string;
 }
 
-interface PlanCardProps {
-  plan: Plan;
-  store: Store;
-}
-
 function formatPrice(amountCents: number, currency: string): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -40,7 +35,7 @@ const durationLabel: Record<string, string> = {
   "1yr": "/ year",
 };
 
-export function PlanCard({ plan, store }: PlanCardProps) {
+export function PlanCard({ plan, store }: { plan: Plan; store: Store }) {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -49,7 +44,7 @@ export function PlanCard({ plan, store }: PlanCardProps) {
   const [error, setError] = useState("");
   const router = useRouter();
 
-  async function handleCheckout(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     setLoading(true);
@@ -71,8 +66,9 @@ export function PlanCard({ plan, store }: PlanCardProps) {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Checkout failed");
-      router.push(data.url);
+      if (!res.ok) throw new Error(data.error ?? "Order failed");
+
+      router.push(`/success?order_id=${data.orderId}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
       setLoading(false);
@@ -124,10 +120,10 @@ export function PlanCard({ plan, store }: PlanCardProps) {
               : "bg-white/10 hover:bg-white/20 text-white border border-white/20"
           }`}
         >
-          Get Started
+          Order Now
         </Button>
       ) : (
-        <form onSubmit={handleCheckout} className="space-y-3">
+        <form onSubmit={handleSubmit} className="space-y-3">
           {error && (
             <p className="text-red-400 text-xs bg-red-500/10 border border-red-500/20 rounded p-2">
               {error}
@@ -163,10 +159,10 @@ export function PlanCard({ plan, store }: PlanCardProps) {
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Processing…
+                Placing order…
               </>
             ) : (
-              "Proceed to Payment"
+              "Place Order"
             )}
           </Button>
           <button

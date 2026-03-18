@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { stripe } from "@/lib/stripe";
 import { db } from "@/lib/db";
-import { OrderStatus } from "@prisma/client";
+import { PlanDuration } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +16,16 @@ const checkoutSchema = z.object({
   clientName: z.string().optional(),
 });
 
+function toPlanDuration(raw: string): PlanDuration {
+  const map: Record<string, PlanDuration> = {
+    "1m": PlanDuration.ONE_MONTH,
+    "3m": PlanDuration.THREE_MONTHS,
+    "6m": PlanDuration.SIX_MONTHS,
+    "1yr": PlanDuration.ONE_YEAR,
+  };
+  return map[raw] ?? PlanDuration.ONE_MONTH;
+}
+
 export async function POST(request: Request) {
   let body: unknown;
   try {
@@ -30,91 +39,35 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
-  const {
-    storeId,
-    planName,
-    planDuration,
-    amountCents,
-    currency,
-    clientEmail,
-    clientPhone,
-    clientName,
-  } = parsed.data;
+  const { storeId, planName, planDuration, amountCents, currency, clientEmail, clientPhone, clientName } = parsed.data;
 
-  // Verify store exists
   const store = await db.store.findUnique({ where: { id: storeId } });
   if (!store || !store.isActive) {
     return NextResponse.json({ error: "Store not found or inactive" }, { status: 404 });
   }
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  // Upsert client
+  const client = await db.client.upsert({
+    where: { email: clientEmail },
+    update: {
+      ...(clientName && { name: clientName }),
+      ...(clientPhone && { phone: clientPhone }),
+    },
+    create: { email: clientEmail, name: clientName, phone: clientPhone },
+  });
 
-  // Create a pending order for tracking before Stripe
+  // Create pending order
   const order = await db.order.create({
     data: {
       storeId,
-      clientId: (
-        await db.client.upsert({
-          where: { email: clientEmail },
-          update: {
-            ...(clientName && { name: clientName }),
-            ...(clientPhone && { phone: clientPhone }),
-          },
-          create: { email: clientEmail, name: clientName, phone: clientPhone },
-        })
-      ).id,
+      clientId: client.id,
       planName,
-      planDuration:
-        planDuration === "1m"
-          ? "ONE_MONTH"
-          : planDuration === "3m"
-            ? "THREE_MONTHS"
-            : planDuration === "6m"
-              ? "SIX_MONTHS"
-              : "ONE_YEAR",
+      planDuration: toPlanDuration(planDuration),
       amountCents,
       currency,
-      status: OrderStatus.PENDING,
+      status: "PENDING",
     },
   });
 
-  const session = await stripe.checkout.sessions.create({
-    mode: "payment",
-    payment_method_types: ["card"],
-    line_items: [
-      {
-        price_data: {
-          currency,
-          product_data: {
-            name: `${store.name} — ${planName}`,
-            description: `IPTV subscription (${planDuration === "1m" ? "1 Month" : planDuration === "3m" ? "3 Months" : planDuration === "6m" ? "6 Months" : "1 Year"})`,
-          },
-          unit_amount: amountCents,
-        },
-        quantity: 1,
-      },
-    ],
-    customer_email: clientEmail,
-    metadata: {
-      storeId,
-      storeSlug: store.slug,
-      storeName: store.name,
-      planName,
-      planDuration,
-      clientEmail,
-      clientPhone: clientPhone ?? "",
-      clientName: clientName ?? "",
-      internalOrderId: order.id,
-    },
-    success_url: `${appUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${appUrl}/stores/${store.slug}?cancelled=1`,
-  });
-
-  // Update order with Stripe session ID
-  await db.order.update({
-    where: { id: order.id },
-    data: { stripeSessionId: session.id },
-  });
-
-  return NextResponse.json({ url: session.url });
+  return NextResponse.json({ orderId: order.id });
 }

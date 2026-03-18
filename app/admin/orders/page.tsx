@@ -6,6 +6,7 @@ import { formatCurrency, formatDate, planDurationLabel } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ResendCredentialsButton } from "@/components/admin/resend-button";
+import { ConfirmOrderButton } from "@/components/admin/confirm-order-button";
 import Link from "next/link";
 import { ShoppingCart } from "lucide-react";
 
@@ -152,13 +153,18 @@ export default async function OrdersPage({ searchParams }: { searchParams: Searc
                       {formatDate(order.createdAt)}
                     </td>
                     <td className="px-6 py-3">
-                      {order.credentials[0] && (
-                        <ResendCredentialsButton
-                          credentialId={order.credentials[0].id}
-                          channel="both"
-                          size="sm"
-                        />
-                      )}
+                      <div className="flex items-center gap-2">
+                        {order.status === "PENDING" && (
+                          <ConfirmOrderButton orderId={order.id} />
+                        )}
+                        {order.credentials[0] && (
+                          <ResendCredentialsButton
+                            credentialId={order.credentials[0].id}
+                            channel="both"
+                            size="sm"
+                          />
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}

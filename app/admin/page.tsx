@@ -6,6 +6,7 @@ import { formatCurrency, formatDate } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
+import { ConfirmOrderButton } from "@/components/admin/confirm-order-button";
 import {
   DollarSign,
   ShoppingCart,
@@ -158,6 +159,7 @@ export default async function AdminOverviewPage() {
                   <th className="text-left px-6 py-3 font-medium text-muted-foreground">Amount</th>
                   <th className="text-left px-6 py-3 font-medium text-muted-foreground">Status</th>
                   <th className="text-left px-6 py-3 font-medium text-muted-foreground">Date</th>
+                  <th className="text-left px-6 py-3 font-medium text-muted-foreground">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -181,6 +183,11 @@ export default async function AdminOverviewPage() {
                     </td>
                     <td className="px-6 py-3 text-muted-foreground">
                       {formatDate(order.createdAt)}
+                    </td>
+                    <td className="px-6 py-3">
+                      {order.status === "PENDING" && (
+                        <ConfirmOrderButton orderId={order.id} />
+                      )}
                     </td>
                   </tr>
                 ))}

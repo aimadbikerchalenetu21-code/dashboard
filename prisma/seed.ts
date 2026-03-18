@@ -139,7 +139,6 @@ async function main() {
       planName: STORE_1_PLANS[1].name,
       planDuration: STORE_1_PLANS[1].duration,
       amountCents: STORE_1_PLANS[1].amountCents,
-      stripeSessionId: `cs_demo_${client1.id}_1`,
     },
     {
       client: client2,
@@ -147,7 +146,6 @@ async function main() {
       planName: STORE_2_PLANS[2].name,
       planDuration: STORE_2_PLANS[2].duration,
       amountCents: STORE_2_PLANS[2].amountCents,
-      stripeSessionId: `cs_demo_${client2.id}_1`,
     },
     {
       client: client3,
@@ -155,13 +153,12 @@ async function main() {
       planName: STORE_1_PLANS[2].name,
       planDuration: STORE_1_PLANS[2].duration,
       amountCents: STORE_1_PLANS[2].amountCents,
-      stripeSessionId: `cs_demo_${client3.id}_1`,
     },
   ];
 
   for (const od of demoOrdersData) {
-    const existing = await prisma.order.findUnique({
-      where: { stripeSessionId: od.stripeSessionId },
+    const existing = await prisma.order.findFirst({
+      where: { clientId: od.client.id, planName: od.planName },
     });
     if (existing) continue;
 
@@ -173,7 +170,6 @@ async function main() {
         planDuration: od.planDuration,
         amountCents: od.amountCents,
         currency: "usd",
-        stripeSessionId: od.stripeSessionId,
         status: OrderStatus.PAID,
         paidAt: new Date(),
       },
